@@ -307,10 +307,6 @@ class ECDataset(InMemoryDataset):
         return [os.path.join(directory, fname)
                 for fname in os.listdir(directory)
                 if fname == pattern]
-    
-    
-    def process(self):
-        self._prepare()
 
     def load_json(self, name: str) -> list:
         """Load a JSON file and ensure it's returned as a list of dictionaries."""
