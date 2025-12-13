@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Optional
 
 import networkx as nx
-from loguru import logger
 from torch_geometric.data import Data, InMemoryDataset
 from tqdm import tqdm
 
@@ -57,7 +56,7 @@ class SyntheticDataset(InMemoryDataset, ABC):
         if self.num_samples is None:
             raise ValueError("num_samples cannot be None when generating a new dataset")
 
-        logger.info("Generating Graphs...")
+        print("Generating Graphs...")
         if self.multiprocessing:
             graphs = parallelize_with_progress_bar(self.create_graph, range(self.num_samples), self.num_workers)
         else:
@@ -77,7 +76,7 @@ class SyntheticDataset(InMemoryDataset, ABC):
         with open(Path(self.processed_dir) / "graphs_nx.pickle", "wb") as file:
             pickle.dump(graphs_nx, file)
 
-        logger.info(f"Done generating, dataset saved. Root: {self.root}")
+        print(f"Done generating, dataset saved. Root: {self.root}")
 
     @abstractmethod
     def create_graph(self, _index) -> tuple[Data, nx.Graph]:

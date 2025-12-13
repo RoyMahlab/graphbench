@@ -58,6 +58,7 @@ dependencies = [
   "gurobipy",
   "tqdm",
   "swig",
+  "scikit-learn",
 ]
 
 [project.optional-dependencies]
