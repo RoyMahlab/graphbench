@@ -13,14 +13,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12']
         numpy-version: ['1.21.0', '1.22.0', '1.23.0', '1.24.0', '1.25.0', '1.26.0', '2.0.0']
         torch-version: ['1.12.0', '1.13.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0']
         exclude:
-          # NumPy 2.0+ requires Python 3.9+
-          - python-version: '3.8'
-            numpy-version: '2.0.0'
-          # PyTorch 2.2+ requires Python 3.8+, but some older versions have issues
           # PyTorch 1.12-1.13 don't support Python 3.11+
           - python-version: '3.11'
             torch-version: '1.12.0'
@@ -84,7 +80,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12']
     
     name: Python ${{ matrix.python-version }} with latest packages
     
