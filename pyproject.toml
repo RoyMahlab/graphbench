@@ -52,17 +52,15 @@ dependencies = [
   "torchmetrics",
   "numpy",
   "pandas",
-  "smac",
   "requests",
   "networkx",
   "gurobipy",
   "tqdm",
-  "swig",
   "scikit-learn",
 ]
 
 [project.optional-dependencies]
-
+tuning = ["smac", "swig"]
 
 [build-system]
 requires = ["setuptools", "wheel"]

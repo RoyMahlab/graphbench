@@ -1,8 +1,10 @@
 import copy
 
-from ConfigSpace import ConfigurationSpace, Float, Integer
-from smac import MultiFidelityFacade, Scenario
-
+try:
+    from ConfigSpace import ConfigurationSpace, Float, Integer
+    from smac import MultiFidelityFacade, Scenario
+except ImportError:
+    raise ImportError("Please install graphbench with the [tuning] extra to use this feature.")
 
 class Optimize():
 
