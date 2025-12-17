@@ -50,11 +50,6 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    
-    - name: Install SWIG (macOS)
-      if: runner.os == 'macOS'
-      run: brew install swig
-    
     - name: Upgrade setuptools and wheel
       run: |
         python -m pip install --upgrade pip setuptools wheel
