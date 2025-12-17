@@ -24,6 +24,8 @@ We recommend using Anaconda/Miniconda during setup. The installation process is 
 2. GraphBench can then be easily installed using the python package manager pip:
 ```pip install graphbench-lib```
 
+For using the optimzation module ```graphbench-lib[tuning]``` needs to be installed instead. 
+
 Please make sure to update the installation of GraphBench before running the benchmark for best results. 
 Alternatively one can also install from source:
 
@@ -32,6 +34,22 @@ git clone https://github.com/graphbench/package
 cd package
 pip install -e . 
 ```
+
+## Dependencies
+
+GraphBench uses some python packages to enable loading and processing of datasets. An overview of the required packages can be found in the list below:
+
+- torch
+- torch_geometric
+- networkx
+- torchmetrics
+- numpy
+- pandas
+- requests
+- tqdm
+- scikit-learn
+
+Optionally smac3 is used for the optimization module. 
 
 ## Usage
 
