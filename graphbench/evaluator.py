@@ -1,12 +1,11 @@
 """
 evaluator.py
 ----------------
-Utility class to evaluate model outputs for many tasks supported by
+Utility class to evaluate model outputs for tasks supported by
 GraphBench. The `Evaluator` class centralizes selection of metrics and
 computes task-specific scores such as classification accuracy, F1,
 regression metrics, and specialized scores used by
 benchmarks (e.g., ClosedGap, ChipDesignScore, Weather_MSE).
-
 
 """
 
@@ -254,8 +253,8 @@ class Evaluator():
 
         This method expects `y_pred` and `y_true` to be sequences of
         circuit-like data objects. For each pair it attempts to simulate
-        truth-tables using `VectorizedCircuitSimulator` and compares
-        outputs. The returned score is in [0, 100].
+        truth-tables using the VectorizedCircuitSimulator class and compares
+        outputs. The returned score is in >= 0 with 100 as the score obtained for providing the reference solution.
         """
         if len(y_pred) != len(y_true):
             return 0.0
