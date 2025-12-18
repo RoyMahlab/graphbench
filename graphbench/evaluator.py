@@ -76,24 +76,28 @@ class Evaluator():
         metrics accept and ignore extra arguments.
         """
         metric_dict = {
-            'ACC': self._get_acc(),
-            'F1': self._get_f1(),
-            'spearman_r_0':self._get_spearman(0),
-            'spearman_r_1':self._get_spearman(1),
-            'spearman_r_2':self._get_spearman(2),
-            'r2_0':self._get_r2(0),
-            'r2_1':self._get_r2(1),
-            'r2_2':self._get_r2(2),
-            'MSE': self._get_mse(),
-            'MAE': self._get_mae(),
-            'RMSE': self._get_rmse(),
-            'MisSize': self._get_mis_size(),
-            'MaxCutSize': self._get_max_cut_size(),
-            'NumColorsUsed': self._get_num_colors_used(),
-            'ClosedGap': self._get_closed_gap(),
-            'ChipDesignScore': self._get_chip_design_score(),
-            'RSE': self._get_rse(),
-            'Weather_MSE': self._get_weather_mse(),
+            'ACC': self.get_acc(),
+            'F1': self.get_f1(),
+            'spearman_r_0': self.get_spearman(0),
+            'spearman_r_1': self.get_spearman(1),
+            'spearman_r_2': self.get_spearman(2),
+            'r2_0': self.get_r2(0),
+            'r2_1': self.get_r2(1),
+            'r2_2': self.get_r2(2),
+            'MSE': self.get_mse(),
+            'MAE': self.get_mae(),
+            'RMSE': self.get_rmse(),
+            'RSE': self.get_rse(),
+
+            # The following metrics do not use `evaluate()` because they
+            # require non-tensor inputs (graph batches / circuit objects).
+            # They are provided as callables for consistency.
+            'MisSize': self.get_mis_size(),
+            'MaxCutSize': self.get_max_cut_size(),
+            'NumColorsUsed': self.get_num_colors_used(),
+            'ClosedGap': self.get_closed_gap(),
+            'ChipDesignScore': self.get_chip_design_score(),
+            'Weather_MSE': self.get_weather_mse(),
         }
         if metric_name in metric_dict:
             return metric_dict[metric_name]
@@ -123,24 +127,71 @@ class Evaluator():
         else:
             return metric(y_pred, y_true).item()
                 
-    def _get_f1(self):
+    def get_f1(self):
+        """Return a callable computing binary F1.
 
-        f1 = torchmetrics.F1Score()
+        Returns:
+            Callable[[Tensor, Tensor], Tensor]: Metric callable taking
+            `(y_pred, y_true)`.
+        """
+        f1 = torchmetrics.F1Score(task="binary")
         return lambda x, y: f1(x, y)
 
-    def _get_acc(self):
-        """Return an accuracy metric callable."""
-        acc = torchmetrics.Accuracy()
+    def get_acc(self):
+        """Return a callable computing binary accuracy."""
+        acc = torchmetrics.Accuracy(task="binary")
         return lambda x, y: acc(x, y)
-    def _get_spearman(self, index):
+
+    def get_spearman(self, index):
         """Return a spearman correlation callable for the given output index."""
         spearman = torchmetrics.SpearmanCorrCoef()
         return lambda x, y: spearman(x[:,index], y[:,index])
     
-    def _get_r2(self, index):
+    def get_r2(self, index):
         """Return an R2 score callable for the given output index."""
         r2 = torchmetrics.R2Score()
         return lambda x, y: r2(x[:,index], y[:,index])
+
+    def get_closed_gap(self):
+        """Return a callable computing ClosedGap.
+
+        Note: This metric expects `y_true` shaped (N, K) of runtimes or
+        costs per algorithm, and `y_pred` shaped (N, K) of scores or
+        probabilities used to select the algorithm.
+        """
+        return lambda y_pred, y_true: self._get_closed_gap(y_pred, y_true)
+
+    def get_chip_design_score(self):
+        """Return a callable computing ChipDesignScore."""
+        return lambda y_pred, y_true: self._get_chip_design_score(y_pred, y_true)
+
+    def get_weather_mse(self):
+        """Return a callable computing Weather_MSE."""
+        return lambda y_pred, y_true: self._get_weather_mse(y_pred, y_true)
+
+    def get_mis_size(self):
+        """Return a callable computing MisSize.
+
+        Note: This callable expects `(x, batch)` rather than the standard
+        `(y_pred, y_true)` signature.
+        """
+        return lambda x, batch, dec_length=300, num_seeds=1: self._get_mis_size(x, batch, dec_length=dec_length, num_seeds=num_seeds)
+
+    def get_max_cut_size(self):
+        """Return a callable computing MaxCutSize.
+
+        Note: This callable expects `(x, batch)` rather than the standard
+        `(y_pred, y_true)` signature.
+        """
+        return lambda x, batch: self._get_max_cut_size(x, batch)
+
+    def get_num_colors_used(self):
+        """Return a callable computing NumColorsUsed.
+
+        Note: This callable expects `(x, batch)` rather than the standard
+        `(y_pred, y_true)` signature.
+        """
+        return lambda x, batch, num_seeds=1: self._get_num_colors_used(x, batch, num_seeds=num_seeds)
     
     def _get_closed_gap(self,y_pred, y_true, inference_times=None):
 
@@ -400,7 +451,23 @@ class Evaluator():
                             pressure_level_weights=compute_pressure_level_weights(get_default_pressure_levels()),
                             )
     
-    def _get_mse(self, y_pred, y_true):
+    def get_mse(self):
+        """Return a callable computing mean squared error (averaged per-column)."""
+        return lambda y_pred, y_true: self._mse(y_pred, y_true)
+
+    def get_rmse(self):
+        """Return a callable computing root mean squared error (averaged per-column)."""
+        return lambda y_pred, y_true: self._rmse(y_pred, y_true)
+
+    def get_mae(self):
+        """Return a callable computing mean absolute error (averaged per-column)."""
+        return lambda y_pred, y_true: self._mae(y_pred, y_true)
+
+    def get_rse(self):
+        """Return a callable computing relative squared error (averaged per-column)."""
+        return lambda y_pred, y_true: self._rse(y_pred, y_true)
+
+    def _mse(self, y_pred, y_true):
         mse_list = []
         for i in range(y_true.shape[1]):
 
@@ -408,7 +475,7 @@ class Evaluator():
         return sum(mse_list)/len(mse_list)
     
 
-    def _get_rmse(self, y_pred, y_true):
+    def _rmse(self, y_pred, y_true):
 
         rmse_list = []
 
@@ -418,14 +485,14 @@ class Evaluator():
 
         return sum(rmse_list)/len(rmse_list)
     
-    def _get_mae(self, y_pred, y_true):
+    def _mae(self, y_pred, y_true):
         mae_list = []
         for i in range(y_true.shape[1]):
 
             mae_list.append((torch.abs(y_true[:,i] - y_pred[:,i])).mean())
         return sum(mae_list)/len(mae_list)
     
-    def _get_rse(self, y_pred, y_true):
+    def _rse(self, y_pred, y_true):
         rse_vals = []
         for i in range(y_true.shape[1]):
             num = torch.mean((y_true[:, i] - y_pred[:, i]) ** 2)
