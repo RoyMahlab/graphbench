@@ -379,12 +379,18 @@ class CSP_Instance:
                 return 'OR'
             else:
                 return 'NAND'
+            
+        def fill_monom_clause_func(c):
+            return [c[0], c[0]] if len(c) == 1 else c
+        
+        def normalize_impl_clause_func(c):
+            return [c[1], c[0]] if clause_type(c) == 'IMPL' and c[0] > 0 else c
 
         def normalize_2SAT_clauses(formula):
             # Transforms clauses of form [v, -u] to [-u, v]. This unifies the direction of all implication clauses.
-            fill_monom_clause = lambda c: [c[0], c[0]] if len(c) == 1 else c
+            fill_monom_clause = fill_monom_clause_func(c)
             filled_formula = list(map(fill_monom_clause, formula))
-            normalize_impl_clause = lambda c: [c[1], c[0]] if clause_type(c) == 'IMPL' and c[0] > 0 else c
+            normalize_impl_clause = normalize_impl_clause_func(c)
             normed_formula = list(map(normalize_impl_clause, filled_formula))
             return normed_formula
 

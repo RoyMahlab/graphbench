@@ -20,7 +20,7 @@ def set_seed(seed):
 
 class SpearmanR(object):
 
-    def _rankdata_torch(x: torch.Tensor) -> torch.Tensor:
+    def _rankdata_torch(self,x: torch.Tensor) -> torch.Tensor:
         """
         Compute average ranks (1-based) for 1D tensor x, matching scipy.stats.rankdata(method='average').
         Works on CPU or GPU tensors.
@@ -56,7 +56,7 @@ class SpearmanR(object):
         return ranks  # 1..n (float64)
 
 
-    def _spearmanr(pred: torch.Tensor, truth: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
+    def _spearmanr(self,pred: torch.Tensor, truth: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
         """
         Compute Spearman's rank correlation (rho) between 1D tensors pred and truth.
         Returns a scalar torch.Tensor (float64) on the same device as inputs.

@@ -245,7 +245,7 @@ def steiner_tree_graph(num_nodes, name, sampling_list, is_training, num_terminal
                 steiner_tree = nx.algorithms.approximation.steiner_tree(graph, terminal_nodes, weight="edge_attr")
                 steiner_edges = list(steiner_tree.edges)
                 return graph, steiner_edges, terminal_nodes
-            except:
+            except ValueError or nx.NetworkXError:
                 continue
 
 

@@ -188,7 +188,8 @@ def masked_loss(
     variable_slices: Optional[List[Tuple[int, int]]] = None,
     variable_names: Optional[List[str]] = None,
     pressure_level_weights: Optional[torch.Tensor] = None,
-    eval_mode: bool = False
+    device: Optional[str] = None,
+    eval_mode: bool = False, 
 ) -> torch.Tensor:
     """Computes spatially weighted MSE loss with NaN/Inf masking."""
 
