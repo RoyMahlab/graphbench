@@ -1,9 +1,11 @@
-# GraphBench: Next generation graph learning benchmarking
+
+
+# GraphBench: Next-generation graph learning benchmarking
 
 This is the package associated with the paper [GraphBench: Next generation graph learning benchmarking](https://arxiv.org/abs/2512.04475). 
 
-It contains the code and tools necessary to load the datasets associated with the benchmark. 
-GraphBench is a collection of benchmarking datasets across domains and tasks obtained from real world and synthetic applications. 
+It contains the code and tools needed to load the benchmark's datasets. 
+GraphBench is a collection of benchmarking datasets across domains and tasks obtained from real-world and synthetic applications. 
 
 ## Features
 
@@ -21,13 +23,13 @@ We recommend using Anaconda/Miniconda during setup. The installation process is 
 1. Install [swig](https://github.com/swig/swig) via Anaconda/Miniconda (if using the optimization module): 
 ```conda install swig```
 
-2. GraphBench can then be easily installed using the python package manager pip:
+2. GraphBench can then be easily installed using the Python package manager pip:
 ```pip install graphbench-lib```
 
-For using the optimzation module ```graphbench-lib[tuning]``` needs to be installed instead. 
+For using the optimization module ```graphbench-lib[tuning]```, it needs to be installed instead. 
 
-Please make sure to update the installation of GraphBench before running the benchmark for best results. 
-Alternatively one can also install from source:
+Please make sure to install GraphBench before running the benchmark for the best results. 
+Alternatively, one can also install from source:
 
 ```
 git clone https://github.com/graphbench/package
@@ -37,7 +39,7 @@ pip install -e .
 
 ## Dependencies
 
-GraphBench uses some python packages to enable loading and processing of datasets. An overview of the required packages can be found in the list below:
+GraphBench uses several Python packages to load and process datasets. An overview of the required packages can be found in the list below:
 
 - torch
 - torch_geometric
@@ -49,7 +51,7 @@ GraphBench uses some python packages to enable loading and processing of dataset
 - tqdm
 - scikit-learn
 
-Optionally smac3 is used for the optimization module. 
+Optionally, SMAC3 is used for the optimization module. 
 
 ## Usage
 
@@ -80,13 +82,13 @@ In order to use all datasets of a domain easily, each domain corresponds to one 
 | Chip design | chipdesign |
 | Weather forecasting | weather |
 
-Note, that for algorithmic reasoning the download always includes all datasets for a given task. We plan to change this in the future. 
+Note that for algorithmic reasoning, the download always includes all datasets for a given task. We plan to change this in the future. 
 
-For a full list of the datasets, see the accompanying [website](https://graphbench.io) or the ```datasets.csv``` file. The corresponding metrics can be found in the ```master.csv``` file.
+For a complete list of the datasets, see the accompanying [website](https://graphbench.io) or the ```datasets.csv``` file. The corresponding metrics are in the ```master.csv``` file.
 
 ## Citing GraphBench:
 
-If you use GraphBench or GraphBench datasets in your work please cite our paper:
+If you use GraphBench or GraphBench datasets in your work, please cite our paper:
 ```
 @article{GraphBench,
 title={GraphBench: Next-generation graph learning benchmarking}, 
