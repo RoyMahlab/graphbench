@@ -192,7 +192,7 @@ class SATDataset(InMemoryDataset):
             self.load(self.processed_paths[0])
             return
 
-        #self._prepare()  # (i) downloads, unpacks, load data + (ii) timestep handle + (e) subgraph + collate
+        self._prepare()  # (i) downloads, unpacks, load data + (ii) timestep handle + (e) subgraph + collate
         if self.cleanup_raw:
             self._cleanup()
 
@@ -577,6 +577,7 @@ class SATDataset(InMemoryDataset):
             data_list = [self.get(i) for i in range(len(self))]
             if self.pre_transform is not None:
                 data_list = [self.pre_transform(d) for d in data_list]
+        self.processed_path.parent.mkdir(parents=True, exist_ok=True)
         self.save(data_list, self.processed_paths[0])
         logger.info(f"Saved processed dataset -> {self.processed_path}")
 

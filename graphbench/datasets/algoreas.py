@@ -187,7 +187,7 @@ class AlgoReasDataset(InMemoryDataset):
         # Apply pre_transform if provided and save the processed cache
         if self.pre_transform is not None:
             data_list = [self.pre_transform(d) for d in data_list]
-
+        self.processed_path.parent.mkdir(parents=True, exist_ok=True)
         self.save(data_list, self.processed_path)
         logger.info(f"Saved processed dataset -> {self.processed_path}")
 

@@ -134,6 +134,7 @@ class ChipDesignDataset(InMemoryDataset):
             data_list = [self.pre_transform(d) for d in data_list]
 
         # Save the processed cache for fast subsequent loads
+        self.processed_path.parent.mkdir(parents=True, exist_ok=True)
         self.save(data_list, self.processed_path)
         logger.info(f"Saved processed dataset -> {self.processed_path}")
 

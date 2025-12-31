@@ -202,7 +202,7 @@ class CODataset(InMemoryDataset):
 
             if self.pre_transform is not None:
                 data_list = [self.pre_transform(d) for d in data_list]
-
+            self.processed_path.parent.mkdir(parents=True, exist_ok=True)
             self.save(data_list, self.processed_path)
 
             #idea: concat the labels to the data object here
