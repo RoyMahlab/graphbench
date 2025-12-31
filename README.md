@@ -55,20 +55,22 @@ Optionally, SMAC3 is used for the optimization module.
 
 ## Usage
 
-The package can be easily used to get selected datasets from the GraphBench tasks:
-
+## Example 1
 ```
-import graphbench
-Loader = graphbench.Loader(root, dataset_name)
-datasets = Loader.load()
+from graphbench.datasets.bluesky import BlueSkyDataset
+dataset = BlueSkyDataset(root="graph_bench_data", name="bluesky_quotes", split="train")
+print(dataset)
+```
+## Example 2
+```
+from graphbench.datasets.electroniccircuits import ECDataset
+dataset = ECDataset(root="graph_bench_data", name="electronic_circuits_5_eff", split="train")
+print(dataset)
 ```
 
 Furthermore, standardized evaluation metrics can be obtained using the following methods:
 
-```
-Evaluator = graphbench.Evaluator(metric_name)
-metric_results = Evaluator.evaluate()
-```
+This should work for all datasets
 
 In order to use all datasets of a domain easily, each domain corresponds to one ```dataset_name``` variable:
 
