@@ -7,6 +7,7 @@ import tarfile
 import zipfile
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional, Union
+from tqdm import tqdm
 
 import requests
 
@@ -46,10 +47,19 @@ def _stream_download(url: str, dest: Path, logger, chunk_size: int = 1 << 20, ti
         return 
     with requests.get(url, stream=True, timeout=timeout) as r:
         r.raise_for_status()
-        with open(dest, "wb") as f:
+        logger.info(f"Response status code: {r.status_code}. Writing to {dest}")
+        total_size = int(r.headers.get("content-length", 0))
+        with open(dest, "wb") as f, tqdm(
+            desc=f"Downloading {dest.name}",
+            total=total_size,
+            unit="B",
+            unit_scale=True,
+            unit_divisor=1024,
+        ) as bar:
             for chunk in r.iter_content(chunk_size=chunk_size):
                 if chunk:
-                    f.write(chunk)
+                    size = f.write(chunk)
+                    bar.update(size) #
 
 def _safe_extract_tar(path: Path, dest_dir: Path) -> None:
     """Extract tar.gz safely (prevents path traversal)."""
