@@ -238,7 +238,7 @@ class BlueSkyDataset(InMemoryDataset):
         transform: Optional[Callable] = None,
         pre_transform: Optional[Callable] = None,
         follower_subgraph: bool = False, #not used for now 
-        cleanup_raw: bool = True,
+        cleanup_raw: bool = False,
         # TODO: This should be removed in the future -- the user will download these files
         load_preprocessed = True, #to load the preprocessed files 
         feature_file_name: Union[str, Path] = FEATURE_PT_PATH,
@@ -282,62 +282,72 @@ class BlueSkyDataset(InMemoryDataset):
             self._cleanup()
 
     def _prepare(self) -> None:
-        # (b) Download & unpack helpers
-        _download_and_unpack(self.source, self._raw_dir, Path(self.processed_dir), logger=logger)
-        _download_and_unpack(self.source_features, self._raw_feature_dir, Path(self.processed_dir), logger=logger)
         # Pick default ts_train_end and gap per dataset type
-       
         if self.name in {'bluesky_quotes', 'bluesky_replies', 'bluesky_reposts'}:
             loader = self._load_graphs_common
             loader_kwargs = dict(base_csv_name=f"{self.name.split('_')[-1]}.csv", ts_start=None)
         else:
             raise ValueError(f"Unsupported dataset name: {self.name}")
+        
+        # (b) Download & unpack helpers
+        # only download if the split files are not already present
+        if not any([self.split in str(file_name) for file_name in (self.bluesky_dir / self.SOURCES[self.name].raw_folder / "raw").glob("*")]):
+            _download_and_unpack(self.source, self._raw_dir, Path(self.processed_dir), logger=logger)
+            _download_and_unpack(self.source_features, self._raw_feature_dir, Path(self.processed_dir), logger=logger)
+       
 
         # (i) Graph Processing: decide ts_end for loader
         # TODO: using default values for now, could be made graph specific
-        ts_train_end = DEFAULT_TRAIN_END
-        prediction_gaps = DEFAULT_PREDICTION_GAPS
-        ts_known_data_end, ts_pred_data_end = self._get_time_windows(ts_train_end, prediction_gaps)
+        splits = ['train', 'val', 'test']
+        default_split = self.split
+        import pdb; pdb.set_trace()
+        for sp in splits:
+            self.split = sp
+            ts_train_end = DEFAULT_TRAIN_END
+            prediction_gaps = DEFAULT_PREDICTION_GAPS
+            ts_known_data_end, ts_pred_data_end = self._get_time_windows(ts_train_end, prediction_gaps)
 
-        # update loader_kwargs with ts_end
-        loader_kwargs["ts_end"] = ts_known_data_end
-        loader_kwargs["include_timestamps"] = (self.split == 'all_edges' or self.split == 'all_targets') #todo: check remove and impact of this
-        data_list = loader(**loader_kwargs)
-        
-        if self.split not in {"all_edges", "all_targets"}:
-            # (ii) Feature & Target Processing
-            for data in data_list:
-                x, y, edge_index, _ = self._process_feats_and_targets(
-                    edge_index=data.edge_index,
-                    ts_feat_end=ts_known_data_end,
-                    ts_pred_start=ts_known_data_end,
-                    ts_pred_end=ts_pred_data_end,
-                )
-                data.x = x
-                data.y = y
-                data.edge_index = edge_index
+            # update loader_kwargs with ts_end
+            loader_kwargs["ts_end"] = ts_known_data_end
+            loader_kwargs["include_timestamps"] = (sp == 'all_edges' or sp == 'all_targets') #todo: check remove and impact of this
+            data_list = loader(**loader_kwargs)
+            if sp not in {"all_edges", "all_targets"}:
+                # (ii) Feature & Target Processing
+                for data in data_list:
+                    x, y, edge_index, _ = self._process_feats_and_targets(
+                        edge_index=data.edge_index,
+                        ts_feat_end=ts_known_data_end,
+                        ts_pred_start=ts_known_data_end,
+                        ts_pred_end=ts_pred_data_end,
+                    )
+                    data.x = x
+                    data.y = y
+                    data.edge_index = edge_index
 
-            # (e) optional followers subgraph
-            
+                # (e) optional followers subgraph
+                
 
-            # collate & save
-            if self.pre_transform:
-                data_list = [self.pre_transform(d) for d in data_list]
+                # collate & save
+                if self.pre_transform:
+                    data_list = [self.pre_transform(d) for d in data_list]
 
-        if self.split == 'all_targets':
-            logger.info('Loading target dictionary...')
-            target_dict = torch.load(self.target_file_name, weights_only=False)
-            ys = list()
-            for key in target_dict:
-                ys += target_dict[key]
-            logger.info('Setting targets into the PyG data object...')
-            for data in data_list:
-                data.y = torch.tensor(ys)
+            if sp == 'all_targets':
+                logger.info('Loading target dictionary...')
+                target_dict = torch.load(self.target_file_name, weights_only=False)
+                ys = list()
+                for key in target_dict:
+                    ys += target_dict[key]
+                logger.info('Setting targets into the PyG data object...')
+                for data in data_list:
+                    data.y = torch.tensor(ys)
 
-        data, slices = self.collate(data_list)
-        self.processed_path.parent.mkdir(parents=True, exist_ok=True)
-        torch.save((data, slices), self.processed_path)
-        logger.info(f"Saved processed dataset -> {self.processed_path}")
+            data, slices = self.collate(data_list)
+            self.processed_path = self.processed_path.parent / f"{self.name}_{sp}.pt"
+            self.processed_path.parent.mkdir(parents=True, exist_ok=True)
+            torch.save((data, slices), self.processed_path)
+            logger.info(f"Saved processed dataset -> {self.processed_path}")
+        self.split = default_split  # restore
+        self.processed_path = self.processed_path.parent / f"{self.name}_{self.split}.pt"
 
 
     def _get_time_windows(self, ts_train_end, prediction_gaps) -> Optional[int]:
@@ -490,6 +500,4 @@ class BlueSkyDataset(InMemoryDataset):
             torch.save(y, os.path.join(self.root, 'raw', f'y_{self.name}_{self.split}.pt'))
             
         return x, y, edge_index, id_map_rev
-
-
  
