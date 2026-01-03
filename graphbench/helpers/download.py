@@ -40,7 +40,7 @@ def _download_and_unpack(source: _SourceSpec, raw_dir: Union[str, Path], process
     else:
         logger.info(f"Found existing download dir: {raw_dir}")
 
-def _stream_download(url: str, dest: Path, logger, chunk_size: int = 1 << 20, timeout: int = 60, ) -> None:
+def _stream_download(url: str, dest: Path, logger, chunk_size: int = 50 * (1 << 20), timeout: int = 60, ) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     logger.info(f"Downloading {url} -> {dest}")
     if url == "redacted":
