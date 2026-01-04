@@ -52,7 +52,7 @@ class ECDataset(InMemoryDataset):
         transform: Optional[Callable] = None,
         pre_transform: Optional[Callable] = None,
         generate: Optional[bool] = False,
-        cleanup_raw: bool = True,
+        cleanup_raw: bool = False,
         target_vout : Optional[float] = None,
         vout_norm_method : Optional[str] = 'min-max',
         # TODO: This should be removed in the future -- the user will download these files
@@ -144,7 +144,8 @@ class ECDataset(InMemoryDataset):
         if self.generate:
             raise NotImplementedError("Dataset generation not supported yet.")
         else:
-            _download_and_unpack(source=self.source, raw_dir=self._raw_dir, processed_dir=self.processed_path, logger=logger)
+            if not any([self.split in str(file_name) for file_name in (self.ec_dir / self.SOURCES[self.dataset_name].raw_folder / "raw").glob("*")]):
+                _download_and_unpack(source=self.source, raw_dir=self._raw_dir, processed_dir=self.processed_path, logger=logger)
 
             train_json = self.load_json(os.path.join(self._raw_dir, f"dataset_{self.component_size}_train.json"))
             valid_json = self.load_json(os.path.join(self._raw_dir, f"dataset_{self.component_size}_valid.json"))
@@ -164,28 +165,32 @@ class ECDataset(InMemoryDataset):
             )
 
             # Select which split to process
+            orig_split = self.split
             split_to_data = {"train": train_json, "val": valid_json, "test": test_json}
-            split_data = split_to_data[self.split]
+            for sp in split_to_data.keys():
+                split_data = split_to_data[sp]
 
-            # Build PyG Data objects
-            data_list = self._make_datalist_from_json(
-                data=split_data,
-                target=self._target,
-                vout_norm_method=self._vout_norm_method,
-                statistics=statistics,
-                y_range=y_range,
-                target_vout=self._target_vout,
-            )
+                # Build PyG Data objects
+                data_list = self._make_datalist_from_json(
+                    data=split_data,
+                    target=self._target,
+                    vout_norm_method=self._vout_norm_method,
+                    statistics=statistics,
+                    y_range=y_range,
+                    target_vout=self._target_vout,
+                )
 
-            if self.pre_filter is not None:
-                data_list = [d for d in data_list if self.pre_filter(d)]
-            if self.pre_transform is not None:
-                data_list = [self.pre_transform(d) for d in tqdm(data_list, desc="pre_transform")]
-            
-            self.processed_path.parent.mkdir(parents=True, exist_ok=True)
-            self.save(data_list, self.processed_path)
-            logger.info(f"Saved processed dataset -> {self.processed_path}")
-
+                if self.pre_filter is not None:
+                    data_list = [d for d in data_list if self.pre_filter(d)]
+                if self.pre_transform is not None:
+                    data_list = [self.pre_transform(d) for d in tqdm(data_list, desc="pre_transform")]
+                
+                self.processed_path.parent.mkdir(parents=True, exist_ok=True)
+                self.processed_path = self.processed_path.parent / f"{self.dataset_name}_{sp}.pt"
+                self.save(data_list, self.processed_path)
+                logger.info(f"Saved processed dataset -> {self.processed_path}")
+            self.split = orig_split
+            self.processed_path = self.processed_path.parent / f"{self.dataset_name}_{self.split}.pt"
 
     def _cleanup(self) -> None:
         if self._raw_dir.exists():
